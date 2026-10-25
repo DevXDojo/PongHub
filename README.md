@@ -156,7 +156,14 @@ Use `{{%format}}` format to define date and time parameters:
   - Example: `{{env(VERSION)}}` - Read VERSION environment variable
   - Returns empty string if environment variable doesn't exist
 
-Environment variables can be set through GitHub Actions Repository Secrets
+Store sensitive values in GitHub Actions Repository Secrets, then explicitly map each required secret in the `env` block of the **Build and run PongHub** step in `.github/workflows/deploy.yml`:
+
+```yaml
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+```
+
+The deployment workflow already maps `SMTP_USERNAME`, `SMTP_PASSWORD`, and `WEBHOOK_URL`. Other secrets are not loaded automatically. PR checks do not receive repository secrets.
 
 #### 📊 Sequence and Hash Parameters
 

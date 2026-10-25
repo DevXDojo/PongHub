@@ -156,7 +156,14 @@ ponghub 现已支持强大的参数化配置功能，允许在配置文件中使
   - 示例：`{{env(VERSION)}}` - 读取VERSION环境变量
   - 如果环境变量不存在，返回空字符串
 
-环境变量可通过 GitHub Actions 的 Repository Secrets 设置
+敏感值存储在 GitHub Actions 的 Repository Secrets 中，并在 `.github/workflows/deploy.yml` 的 **Build and run PongHub** 步骤中，通过 `env` 显式映射所需的 Secret：
+
+```yaml
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+```
+
+部署工作流已映射 `SMTP_USERNAME`、`SMTP_PASSWORD` 和 `WEBHOOK_URL`，其他 Secret 不会自动加载。PR 检查不注入仓库 Secrets。
 
 #### 📊 序列号和哈希参数
 

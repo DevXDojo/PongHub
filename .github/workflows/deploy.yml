@@ -21,24 +21,23 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: "🔧 Setup environment variables from secrets"
-        env:
-          SECRETS_CONTEXT: ${{ toJSON(secrets) }}
-        run: |
-          echo "Setting up environment variables from GitHub secrets..."
-          echo "$SECRETS_CONTEXT" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
-          echo "Environment variables configured from secrets"
-
       - name: "🏗️ Build and run PongHub"
+        env:
+          # Add any secrets referenced by {{env(...)}} in config.yaml here.
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: |
           mkdir -p bin data
-          git clone --branch gh-pages https://github.com/${{ github.repository }}.git || true
-          if [ -f ponghub/ponghub_log.json ]; then
-            cp ponghub/ponghub_log.json data/ponghub_log.json
+          git clone --depth 1 --single-branch --branch gh-pages https://github.com/${{ github.repository }}.git previous-data || true
+          if [ -f previous-data/ponghub_log.json ]; then
+            cp previous-data/ponghub_log.json data/ponghub_log.json
           else
             echo "New installation, no previous data found."
           fi
-          make run || true
+          make run
+          test -s data/index.html
+          jq -e 'type == "object"' data/ponghub_log.json > /dev/null
 
       - name: "📦 Prepare publish directory"
         run: |

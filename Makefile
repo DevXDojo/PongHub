@@ -1,7 +1,7 @@
 PROJECT_NAME=ponghub
 
 BINARY=bin/$(PROJECT_NAME)
-SRC=cmd/$(PROJECT_NAME)/*.go
+SRC=./cmd/$(PROJECT_NAME)
 
 .PHONY: all build run test clean
 
