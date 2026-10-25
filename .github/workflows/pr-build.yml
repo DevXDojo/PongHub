@@ -20,14 +20,6 @@ jobs:
         with:
           go-version: '1.24'
 
-      - name: "🔧 Setup environment variables from secrets"
-        env:
-          SECRETS_CONTEXT: ${{ toJSON(secrets) }}
-        run: |
-          echo "Setting up environment variables from GitHub secrets..."
-          echo "$SECRETS_CONTEXT" | jq -r 'to_entries[] | "\(.key)=\(.value)"' >> $GITHUB_ENV
-          echo "Environment variables configured from secrets"
-
       - name: "🧪 Run Go tests"
         run: |
           go mod tidy
@@ -41,15 +33,16 @@ jobs:
         run: |
           mkdir -p bin data
           if [ ! -f data/ponghub_log.json ]; then
-            echo "[]" > data/ponghub_log.json
+            echo "{}" > data/ponghub_log.json
             echo "Created empty log file for testing"
           fi
-          make run || true
+          make run
 
       - name: "✅ Verify build artifacts"
         run: |
           echo "Checking generated files..."
-          if [ -f data/ponghub_log.json ]; then
+          if [ -s data/ponghub_log.json ]; then
+            jq -e 'type == "object"' data/ponghub_log.json > /dev/null
             echo "✅ Log file generated successfully"
             echo "Log file size: $(wc -c < data/ponghub_log.json) bytes"
           else
@@ -57,7 +50,7 @@ jobs:
             exit 1
           fi
           
-          if [ -f data/index.html ]; then
+          if [ -s data/index.html ]; then
             echo "✅ Report HTML generated successfully"
             echo "Report file size: $(wc -c < data/index.html) bytes"
           else
@@ -91,7 +84,3 @@ jobs:
           else
             echo "- ✅ **Service Status**: All services appear to be healthy" >> $GITHUB_STEP_SUMMARY
           fi
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 🔧 Environment Variables" >> $GITHUB_STEP_SUMMARY
-          echo "Environment variables were successfully loaded from GitHub secrets." >> $GITHUB_STEP_SUMMARY
